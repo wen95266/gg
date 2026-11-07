@@ -529,11 +529,6 @@ wss.on('connection', (ws) => {
           return false;
         }
 
-        // 若房间状态为 waiting (等候队列匹配中)，满员入座即全员就绪；若为 finished (上一局刚完)，需全员点击“继续下一局”
-        if (room.status === 'waiting') {
-          validPlayers.forEach((pl: any) => { pl.isReady = true; });
-        }
-
         const allReady = validPlayers.every((pl: any) => Boolean(pl.isReady));
 
         if (!allReady) {

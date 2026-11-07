@@ -510,8 +510,13 @@
                 {{ sc >= 0 ? `+${sc}` : sc }} 分
               </div>
             </div>
-            <div class="mt-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md border" :class="(props.roomPlayers?.[sIdx] as any)?.isReady ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50' : 'bg-stone-900/60 text-amber-200/60 border-stone-700/40'">
-              {{ (props.roomPlayers?.[sIdx] as any)?.isReady ? '✅ 已准备' : '⏳ 等待准备...' }}
+            <div
+              class="mt-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md border transition-all"
+              :class="getPlayerBySeat(sIdx)?.isReady
+                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50'
+                : (getPlayerBySeat(sIdx) ? 'bg-amber-950/60 text-amber-300/80 border-amber-500/40' : 'bg-red-950/60 text-stone-400 border-red-800/40')"
+            >
+              {{ getPlayerBySeat(sIdx) ? (getPlayerBySeat(sIdx)?.isReady ? '✅ 已准备' : '⏳ 思考中...') : '🚪 已离桌' }}
             </div>
           </div>
         </div>
