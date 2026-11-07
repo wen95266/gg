@@ -893,7 +893,7 @@ function chessWebSocketPlugin(): Plugin {
                           break;
                         }
                       }
-                      if (!oldSocketAlive && r.players.length <= r.maxPlayers) {
+                      if (!oldSocketAlive && r.players.length < r.maxPlayers) {
                         room = r;
                         break;
                       }
@@ -978,6 +978,8 @@ function chessWebSocketPlugin(): Plugin {
                 p.socketId = currentSocketId;
                 p.isReady = true;
                 room.players.push(p);
+              } else {
+                console.warn(`⚠️ [安全防爆干预] 房间 ${room.id} 无法容纳第 ${room.players.length + 1} 位玩家，严禁注入满员房间！`);
               }
 
               (ws as any).sceneRoomId = room.id;

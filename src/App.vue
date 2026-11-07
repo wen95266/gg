@@ -2730,12 +2730,12 @@ function connectWs() {
           const isMyRoom = Boolean(msg.roomId && activeRoomId.value && msg.roomId === activeRoomId.value);
           const isMeInPlayers = msg.players.some((p: any) =>
             (userProfile.id && (p.id === userProfile.id || p.originalId === userProfile.id || (typeof p.id === 'string' && p.id.startsWith(userProfile.id)))) ||
-            (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value)))) ||
-            (userProfile.name && p.name === userProfile.name)
+            (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value))))
           );
-          if (!isMyRoom && !isMeInPlayers) {
-            // 绝不接收其他房间的席位变动广播，彻底隔离多房间
-            return;
+          if (activeRoomId.value) {
+            if (!isMyRoom) return;
+          } else {
+            if (!isMeInPlayers) return;
           }
           currentWaitingRoomPlayers.value = msg.players;
           if (msg.roomId) activeRoomId.value = msg.roomId;
@@ -2751,8 +2751,7 @@ function connectWs() {
 
             const matchedSelf = (msg.players || []).find((p: any) =>
               (userProfile.id && (p.id === userProfile.id || p.originalId === userProfile.id || (typeof p.id === 'string' && p.id.startsWith(userProfile.id)))) ||
-              (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value)))) ||
-              (userProfile.name && p.name === userProfile.name)
+              (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value))))
             );
             if (matchedSelf) {
               myAssignedPlayerId.value = matchedSelf.id;
@@ -2808,8 +2807,7 @@ function connectWs() {
 
         const matchedAckSelf = (msg.players || []).find((p: any) =>
           (userProfile.id && (p.id === userProfile.id || p.originalId === userProfile.id || (typeof p.id === 'string' && p.id.startsWith(userProfile.id)))) ||
-          (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value)))) ||
-          (userProfile.name && p.name === userProfile.name)
+          (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value))))
         );
         if (matchedAckSelf) {
           myAssignedPlayerId.value = matchedAckSelf.id;
@@ -2834,12 +2832,12 @@ function connectWs() {
         const isMyRoom = Boolean(msg.roomId && activeRoomId.value && msg.roomId === activeRoomId.value);
         const isMeInPlayers = Array.isArray(playersArr) && playersArr.some((p: any) =>
           (userProfile.id && (p.id === userProfile.id || p.originalId === userProfile.id || (typeof p.id === 'string' && p.id.startsWith(userProfile.id)))) ||
-          (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value)))) ||
-          (userProfile.name && p.name === userProfile.name)
+          (myAssignedPlayerId.value && (p.id === myAssignedPlayerId.value || p.originalId === myAssignedPlayerId.value || (typeof p.id === 'string' && p.id.startsWith(myAssignedPlayerId.value))))
         );
-        if (!isMyRoom && !isMeInPlayers) {
-          // 绝不接收其他房间的满员开局，本房间若未满员继续等待
-          return;
+        if (activeRoomId.value) {
+          if (!isMyRoom) return;
+        } else {
+          if (!isMeInPlayers) return;
         }
           if (msg.roomId) activeRoomId.value = msg.roomId;
           if (msg.gameType) activeGameType.value = msg.gameType;

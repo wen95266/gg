@@ -828,7 +828,7 @@
                 >
                   <div>
                     <div class="font-black text-xs sm:text-sm font-serif-title">{{ s.name }}</div>
-                    <div class="text-[10px] font-mono opacity-80 mt-0.5">👥 人数: {{ props.sceneCounts[s.mode] || 0 }} 人</div>
+                    <div class="text-[10px] font-mono opacity-80 mt-0.5">👥 {{ formatSceneSeatDisplay(props.sceneCounts[s.mode] || 0, s.mode?.includes('eight') ? 8 : 4) }}</div>
                   </div>
                   <span
                     class="text-[10px] font-bold font-mono px-2 py-1 rounded-xl border shrink-0"
@@ -1957,10 +1957,13 @@ function handleWsMessage(event: MessageEvent) {
       if (msg.gameType === props.activeGameType && msg.sceneMode === props.activeSceneMode) {
         const isMyRoom = Boolean(msg.roomId && currentRoomId.value && msg.roomId === currentRoomId.value);
         const isMeInPlayers = Array.isArray(msg.players) && msg.players.some((p: any) =>
-          (props.currentUser?.id && (p.id === props.currentUser.id || p.originalId === props.currentUser.id || (typeof p.id === 'string' && p.id.startsWith(props.currentUser.id)))) ||
-          (props.currentUser?.name && p.name === props.currentUser.name)
+          (props.currentUser?.id && (p.id === props.currentUser.id || p.originalId === props.currentUser.id || (typeof p.id === 'string' && p.id.startsWith(props.currentUser.id))))
         );
-        if (!isMyRoom && !isMeInPlayers) return;
+        if (currentRoomId.value) {
+          if (!isMyRoom) return;
+        } else {
+          if (!isMeInPlayers) return;
+        }
 
         if (msg.roomId) currentRoomId.value = msg.roomId;
         if (msg.deal) currentRoomDeal.value = msg.deal;
