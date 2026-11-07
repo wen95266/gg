@@ -86,16 +86,27 @@
             </div>
           </div>
 
-          <!-- Change Scene Button -->
-          <button
-            type="button"
-            @click="showSceneSwitchModal = true"
-            class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#5C4533] to-[#433022] hover:from-[#4E3929] hover:to-[#38271A] text-[#FAF4E8] text-xs font-black transition-all flex items-center gap-1 active:scale-95 cursor-pointer border border-[#7D6049] shadow-xs whitespace-nowrap shrink-0"
-            title="点击切换其他玩法分场"
-          >
-            <span>🔄</span>
-            <span>换场</span>
-          </button>
+          <!-- Change Scene & Leave Seat Buttons -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              @click="showSceneSwitchModal = true"
+              class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#5C4533] to-[#433022] hover:from-[#4E3929] hover:to-[#38271A] text-[#FAF4E8] text-xs font-black transition-all flex items-center gap-1 active:scale-95 cursor-pointer border border-[#7D6049] shadow-xs whitespace-nowrap shrink-0"
+              title="点击切换其他玩法分场"
+            >
+              <span>🔄</span>
+              <span>换场</span>
+            </button>
+            <button
+              type="button"
+              @click="quickEnterScene('', '')"
+              class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-red-800 to-rose-900 hover:from-red-700 hover:to-rose-800 text-red-100 text-xs font-black transition-all flex items-center gap-1 active:scale-95 cursor-pointer border border-red-500/80 shadow-xs whitespace-nowrap shrink-0 animate-pulse"
+              title="点击离座退出当前游戏分场"
+            >
+              <span>🚪</span>
+              <span>退出座位</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -553,10 +564,10 @@
                   @click.stop="quickEnterScene(s.gameType, s.mode)"
                   class="px-2 py-0.5 rounded-lg text-[9px] font-serif font-bold transition-all active:scale-95 cursor-pointer shrink-0 ml-1"
                   :class="props.activeSceneMode === s.mode
-                    ? 'bg-amber-600 text-amber-100 shadow-xs'
+                    ? 'bg-gradient-to-r from-red-800 to-rose-900 hover:from-red-700 hover:to-rose-800 text-red-100 border border-red-500 shadow-xs animate-pulse'
                     : 'bg-[#EFE5D3] hover:bg-[#E5D7C2] text-[#3C2C1E] border border-[#D8C7B0]'"
                 >
-                  {{ props.activeSceneMode === s.mode ? '当前在席' : '选台入座 ➔' }}
+                  {{ props.activeSceneMode === s.mode ? '🚪 退出座位' : '选台入座 ➔' }}
                 </button>
               </div>
             </div>
@@ -797,9 +808,9 @@
                     <span class="font-black text-xs sm:text-sm font-serif-title">{{ s.name }}</span>
                     <span
                       class="text-[9px] font-bold font-mono px-1.5 py-0.2 rounded-full border"
-                      :class="activeGameType === 'yansan' && activeSceneMode === s.mode ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' : 'bg-amber-100 text-amber-900 border-amber-300'"
+                      :class="activeGameType === 'yansan' && activeSceneMode === s.mode ? 'bg-red-800 text-red-100 border-red-400' : 'bg-amber-100 text-amber-900 border-amber-300'"
                     >
-                      {{ activeGameType === 'yansan' && activeSceneMode === s.mode ? '在座' : '选台' }}
+                      {{ activeGameType === 'yansan' && activeSceneMode === s.mode ? '🚪 退出座位' : '选台' }}
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-[10px] font-mono mt-1 opacity-85">
@@ -834,9 +845,9 @@
                   </div>
                   <span
                     class="text-[10px] font-bold font-mono px-2 py-1 rounded-xl border shrink-0"
-                    :class="activeGameType === 'shisanshui' && activeSceneMode === s.mode ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' : 'bg-amber-100 text-amber-900 border-amber-300'"
+                    :class="activeGameType === 'shisanshui' && activeSceneMode === s.mode ? 'bg-red-800 text-red-100 border-red-400' : 'bg-amber-100 text-amber-900 border-amber-300'"
                   >
-                    {{ activeGameType === 'shisanshui' && activeSceneMode === s.mode ? '✓ 在座' : '选择入座' }}
+                    {{ activeGameType === 'shisanshui' && activeSceneMode === s.mode ? '🚪 退出座位' : '选择入座' }}
                   </span>
                 </button>
               </div>
@@ -866,9 +877,9 @@
                   </div>
                   <span
                     class="text-[10px] font-bold font-mono px-2 py-1 rounded-xl border shrink-0"
-                    :class="activeGameType === 'mahjong' && activeSceneMode === s.mode ? 'bg-amber-500/30 text-amber-200 border-amber-400/50' : 'bg-amber-100 text-amber-900 border-amber-300'"
+                    :class="activeGameType === 'mahjong' && activeSceneMode === s.mode ? 'bg-red-800 text-red-100 border-red-400' : 'bg-amber-100 text-amber-900 border-amber-300'"
                   >
-                    {{ activeGameType === 'mahjong' && activeSceneMode === s.mode ? '✓ 在座' : '选择入座' }}
+                    {{ activeGameType === 'mahjong' && activeSceneMode === s.mode ? '🚪 退出座位' : '选择入座' }}
                   </span>
                 </button>
               </div>
@@ -1072,10 +1083,13 @@ const currentRoomId = ref('');
 const currentRoomDeal = ref<any>(null);
 const currentPlayers = ref<ScenePlayer[]>([]);
 
-// Chat stream state (empty start, dynamically filled by Telegram BOT broadcasts or chat)
-const chatMessages = ref<ChatMessageItem[]>([]);
+// Latest server BOT broadcast (persisted independently of local chat message history)
+const latestServerBroadcast = ref('');
 
 const latestBotBroadcastText = computed(() => {
+  if (latestServerBroadcast.value) {
+    return latestServerBroadcast.value;
+  }
   const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
   if (botMsgs.length > 0) {
     return botMsgs[botMsgs.length - 1].text;
@@ -1085,14 +1099,27 @@ const latestBotBroadcastText = computed(() => {
 
 function deleteBroadcastMessage(msgId: string) {
   chatMessages.value = chatMessages.value.filter(m => m.id !== msgId);
+  latestServerBroadcast.value = '';
   if (soundPromptEnabled.value) soundFX.playTap();
+  if (props.ws && props.ws.readyState === WebSocket.OPEN) {
+    try {
+      props.ws.send(JSON.stringify({ type: 'delete_broadcast' }));
+    } catch {}
+  }
 }
 
 function deleteLatestBotBroadcast() {
+  latestServerBroadcast.value = '';
   const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
   if (botMsgs.length > 0) {
     const last = botMsgs[botMsgs.length - 1];
-    deleteBroadcastMessage(last.id);
+    chatMessages.value = chatMessages.value.filter(m => m.id !== last.id);
+  }
+  if (soundPromptEnabled.value) soundFX.playTap();
+  if (props.ws && props.ws.readyState === WebSocket.OPEN) {
+    try {
+      props.ws.send(JSON.stringify({ type: 'delete_broadcast' }));
+    } catch {}
   }
 }
 
@@ -1279,6 +1306,11 @@ const lobbyPlayerCount = computed(() => {
 
 function quickEnterScene(gameType: string, sceneMode: string) {
   if (soundPromptEnabled.value) soundFX.playTap();
+  if (props.activeSceneMode === sceneMode || (!gameType && !sceneMode)) {
+    // 玩家若再次点击当前已在座场景或离座按钮，即触发退出座位离场
+    emit('select-scene', '', '');
+    return;
+  }
   emit('select-scene', gameType, sceneMode);
 }
 
@@ -1461,6 +1493,11 @@ function followPlayerScene(p: any) {
 function selectSceneFromModal(gameType: string, sceneMode: string) {
   if (soundPromptEnabled.value) soundFX.playTap();
   showSceneSwitchModal.value = false;
+  if (props.activeSceneMode === sceneMode && sceneMode !== '') {
+    // 玩家在弹窗中选择当前在座场景，触发退出座位离场
+    emit('select-scene', '', '');
+    return;
+  }
   emit('select-scene', gameType, sceneMode);
 }
 
@@ -2032,18 +2069,25 @@ function handleWsMessage(event: MessageEvent) {
       }
     } else if (msg.type === 'chat_broadcast') {
       // Administrative announcement / system broadcast
-      const ts = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      const broadcastText = (typeof msg.message?.text === 'string' ? msg.message.text : (typeof msg.message === 'string' ? msg.message : '')) || '';
+      if (broadcastText) {
+        latestServerBroadcast.value = broadcastText;
+      }
+      const ts = msg.message?.timestamp || new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       chatMessages.value.push({
-        id: `notice-${Date.now()}`,
-        sender: msg.message?.sender || '茶楼通告',
-        avatar: msg.message?.avatar || '📢',
-        text: msg.message?.text || msg.message || '系统通告',
+        id: msg.message?.id || `notice-${Date.now()}`,
+        sender: msg.message?.sender || '🤖 牌楼官播 BOT',
+        avatar: msg.message?.avatar || '🤖',
+        text: broadcastText || '系统通告',
         timestamp: ts,
         isSelf: false,
         channel: 'notice',
         type: 'notice',
       });
       scrollToBottom();
+    } else if (msg.type === 'clear_chat_broadcast' || msg.type === 'chat_broadcast_cleared') {
+      latestServerBroadcast.value = '';
+      chatMessages.value = chatMessages.value.filter(m => m.type !== 'notice' && !m.sender.includes('BOT'));
     }
   } catch {}
 }

@@ -278,6 +278,21 @@ wss.on('connection', (ws) => {
         players: teahousePlayers,
       })
     );
+    if (db.systemAnnouncements && db.systemAnnouncements.length > 0) {
+      const latestAnn = db.systemAnnouncements[0];
+      ws.send(
+        JSON.stringify({
+          type: 'chat_broadcast',
+          message: {
+            id: latestAnn.id,
+            sender: '🤖 牌楼官播 BOT',
+            avatar: '🤖',
+            text: latestAnn.text,
+            timestamp: latestAnn.timestamp,
+          },
+        })
+      );
+    }
   } catch {}
 
   // Broadcast real presence counts on new client connection
@@ -411,6 +426,14 @@ wss.on('connection', (ws) => {
           onlineCount: players.filter((p: any) => p.isOnline).length,
           players,
         }));
+        return;
+      }
+
+      if (msg.type === 'delete_broadcast' || msg.type === 'clear_broadcast') {
+        const db = loadDatabase();
+        db.systemAnnouncements = [];
+        saveDatabase(db);
+        broadcast({ type: 'clear_chat_broadcast' });
         return;
       }
 
