@@ -171,6 +171,7 @@
         >
           <!-- BOT Full-Server Broadcast Top Banner -->
           <div
+            v-if="latestBotBroadcastText"
             @click="currentChannel = 'notice'"
             class="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r from-[#2B1E15] via-[#20150D] to-[#2B1E15] border border-amber-500/50 text-amber-200 text-xs leading-relaxed shadow-md cursor-pointer hover:border-amber-400 transition-all shrink-0"
             title="点击切换到【📢 牌楼通报】查看全部全服广播"
@@ -181,10 +182,21 @@
                 <span>牌楼官播 BOT</span>
                 <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-mono border border-amber-500/40">全服广播</span>
               </div>
-              <span class="text-[10px] text-amber-400/80 font-mono flex items-center gap-1">
-                <span>查看全部通报</span>
-                <span>➔</span>
-              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  v-if="props.currentUser?.isAdmin"
+                  type="button"
+                  @click.stop="deleteLatestBotBroadcast"
+                  class="px-2 py-0.5 rounded bg-red-900/80 hover:bg-red-800 text-red-100 text-[10px] font-bold border border-red-400 cursor-pointer active:scale-95 transition-all"
+                  title="删除此条全服广播"
+                >
+                  🗑️ 删除广播
+                </button>
+                <span class="text-[10px] text-amber-400/80 font-mono flex items-center gap-1">
+                  <span>查看全部</span>
+                  <span>➔</span>
+                </span>
+              </div>
             </div>
             <div class="text-[#F5EFE6] font-serif font-bold text-xs truncate">
               {{ latestBotBroadcastText }}
@@ -208,7 +220,18 @@
                   <span>{{ m.sender || '🤖 牌楼官播 BOT' }}</span>
                   <span class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-mono border border-amber-500/40 animate-pulse">全服广播</span>
                 </div>
-                <span class="text-[10px] text-stone-400 font-mono">{{ m.timestamp }}</span>
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="props.currentUser?.isAdmin"
+                    type="button"
+                    @click.stop="deleteBroadcastMessage(m.id)"
+                    class="px-2 py-0.5 rounded bg-red-900/80 hover:bg-red-800 text-red-100 text-[10px] font-bold border border-red-400 cursor-pointer active:scale-95 transition-all"
+                    title="管理员删除此广播"
+                  >
+                    🗑️ 删除广播
+                  </button>
+                  <span class="text-[10px] text-stone-400 font-mono">{{ m.timestamp }}</span>
+                </div>
               </div>
               <div class="text-[#F5EFE6] font-bold leading-relaxed tracking-wide">
                 {{ m.text }}
@@ -325,7 +348,7 @@
 
           <!-- Empty state -->
           <div v-if="filteredMessages.length === 0" class="py-8 text-center text-[#8C755E] text-xs font-serif">
-            <span>🍵 当前频道暂无台词，选择分场入座后点击【下战帖】擂台叫阵！</span>
+            <span>🍵 当前频道暂无发言记录</span>
           </div>
         </div>
 
@@ -341,29 +364,16 @@
         </button>
 
         <!-- ======================================================== -->
-        <!-- INTEGRATED ACTION BANNER: ⚔️下战帖 | 🎙️语音对讲  -->
+        <!-- INTEGRATED ACTION BANNER: 🎙️语音对讲                    -->
         <!-- ======================================================== -->
-        <div class="pt-2 border-t border-[#D8C7B0] shrink-0 bg-[#FAF4E8] space-y-2">
-
-          <!-- MAIN UNIFIED BANNER ROW (⚔️下战帖 | 🎙️语音对讲) -->
-          <div class="grid grid-cols-2 gap-2">
-            <!-- 1. 下战帖按钮 (需先入座游戏分场) -->
-            <button
-              type="button"
-              @click="triggerChallengePost"
-              class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#5C4533] via-[#4A3728] to-[#38281B] hover:from-[#4D3828] hover:to-[#2B1E13] border border-amber-500/50 hover:border-amber-400 text-amber-200 font-serif font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer transition-all"
-              title="须先选择分场入座，方可摆下擂台战帖"
-            >
-              <span class="text-base">⚔️</span>
-              <span>下战帖</span>
-            </button>
-
-            <!-- 2. 语音对讲按钮 -->
+        <div class="pt-2 border-t border-[#D8C7B0] shrink-0 bg-[#FAF4E8]">
+          <div class="w-full">
+            <!-- 语音对讲按钮 -->
             <button
               v-if="!isRecordingVoice"
               type="button"
               @click="startVoiceRecording"
-              class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#241B14] via-[#2F2218] to-[#201711] hover:from-[#32251B] hover:to-[#2B1F17] border border-amber-500/60 hover:border-amber-400 text-amber-300 font-serif font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer transition-all"
+              class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-[#241B14] via-[#2F2218] to-[#201711] hover:from-[#32251B] hover:to-[#2B1F17] border border-amber-500/60 hover:border-amber-400 text-amber-300 font-serif font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer transition-all"
               title="按住发送实时麦克风语音对讲"
             >
               <span class="text-base">🎙️</span>
@@ -638,18 +648,10 @@
                 <span>向 TA 抱拳</span>
               </button>
               <button
-                type="button"
-                @click="sendPlayerDirectAction('challenge', selectedPlayerModal)"
-                class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-800 to-amber-800 hover:from-red-700 hover:to-amber-700 text-amber-200 border border-amber-600/50 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs"
-              >
-                <span>⚔️</span>
-                <span>下战帖邀战</span>
-              </button>
-              <button
                 v-if="selectedPlayerModal.sceneMode && selectedPlayerModal.sceneMode !== activeSceneMode"
                 type="button"
                 @click="followPlayerScene(selectedPlayerModal)"
-                class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#5C4533] to-[#433022] text-[#FAF4E8] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs"
+                class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#5C4533] to-[#433022] text-[#FAF4E8] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs col-span-2"
               >
                 <span>👥</span>
                 <span>跟着入座</span>
@@ -658,7 +660,7 @@
                 v-else
                 type="button"
                 @click="sendPlayerDirectAction('cheer', selectedPlayerModal)"
-                class="py-2.5 px-3 rounded-xl bg-[#EFE5D3] hover:bg-amber-100 text-[#3C2C1E] border border-[#D8C7B0] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs"
+                class="py-2.5 px-3 rounded-xl bg-[#EFE5D3] hover:bg-amber-100 text-[#3C2C1E] border border-[#D8C7B0] flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs col-span-2"
               >
                 <span>🪭</span>
                 <span>摇扇喝彩</span>
@@ -1065,83 +1067,34 @@ const soundPromptEnabled = ref(true);
 // Replay status tracking
 const activePlayingPhraseId = ref<string | null>(null);
 
-// Provocative Challenge Options (下战帖)
-const CHALLENGE_POST_OPTIONS = [
-  '⚔️ 谁敢和我血战到底！有本事的出来对阵！',
-  '⚔️ 摆下英雄擂台！速来战个痛快！',
-  '⚔️ 牌桌见真章！今天谁退缩谁是孙子！',
-  '⚔️ 战帖已发！谁敢放马过来接我几招？',
-  '🍵 先礼后兵，看我这把杀翻全场！',
-  '👏 抱拳领教，全堂高手速速应战！',
-];
-
-// Scenes list for fast switching
-const YANSAN_SCENES = [
-  { mode: 'yansan-5-10', name: '烟三 · 5--10分场' },
-  { mode: 'yansan-10-20', name: '烟三 · 10--20分场' },
-  { mode: 'yansan-20-40', name: '烟三 · 20--40分场' },
-];
-
-const SHISANSHUI_SCENES = [
-  { mode: 'four-realtime', name: '十三水 · 四人实时' },
-  { mode: 'eight-realtime', name: '十三水 · 八人实时' },
-  { mode: 'four-booking', name: '十三水 · 四人预约' },
-  { mode: 'eight-booking', name: '十三水 · 八人预约' },
-];
-
-const MAHJONG_SCENES = [
-  { mode: 'hongzhong-6', name: '红中麻将 · 六码场' },
-  { mode: 'hongzhong-10', name: '红中麻将 · 十码场' },
-  { mode: 'standard-6', name: '普通麻将 · 六码场' },
-  { mode: 'standard-10', name: '普通麻将 · 十码场' },
-];
-
 // Current room deal cache
 const currentRoomId = ref('');
 const currentRoomDeal = ref<any>(null);
 const currentPlayers = ref<ScenePlayer[]>([]);
 
-// Chat stream state initialized with official BOT full-server broadcasts
-const chatMessages = ref<ChatMessageItem[]>([
-  {
-    id: 'bot-msg-1',
-    sender: '🤖 牌楼官播 BOT',
-    avatar: '🤖',
-    text: '📢【全服广播】欢迎光临三款国粹棋牌官方牌楼！服务器已全线稳定连线，实时对局极速开局！',
-    timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-    isSelf: false,
-    channel: 'notice',
-    type: 'notice',
-  },
-  {
-    id: 'bot-msg-2',
-    sender: '🤖 牌楼官播 BOT',
-    avatar: '🤖',
-    text: '🏆【全服广播】喜报：牌楼全服实时锦标赛热烈开打中！胜利牌局即刻触发高光战绩海报！',
-    timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-    isSelf: false,
-    channel: 'notice',
-    type: 'notice',
-  },
-  {
-    id: 'bot-msg-3',
-    sender: '🤖 牌楼官播 BOT',
-    avatar: '🤖',
-    text: '🏮【全服广播】各游戏分场实时人数看板已同步上线！支持一键选台入座、擂台战帖与免软键盘语音对讲！',
-    timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-    isSelf: false,
-    channel: 'notice',
-    type: 'notice',
-  },
-]);
+// Chat stream state (empty start, dynamically filled by Telegram BOT broadcasts or chat)
+const chatMessages = ref<ChatMessageItem[]>([]);
 
 const latestBotBroadcastText = computed(() => {
   const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
   if (botMsgs.length > 0) {
     return botMsgs[botMsgs.length - 1].text;
   }
-  return '📢【全服广播】欢迎来到三款国粹棋牌官方牌楼！服务器已连线，实时对局极速开局！';
+  return '';
 });
+
+function deleteBroadcastMessage(msgId: string) {
+  chatMessages.value = chatMessages.value.filter(m => m.id !== msgId);
+  if (soundPromptEnabled.value) soundFX.playTap();
+}
+
+function deleteLatestBotBroadcast() {
+  const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
+  if (botMsgs.length > 0) {
+    const last = botMsgs[botMsgs.length - 1];
+    deleteBroadcastMessage(last.id);
+  }
+}
 
 // Voice recording & broadcast state
 const isRecordingVoice = ref(false);

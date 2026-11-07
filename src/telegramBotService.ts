@@ -279,20 +279,15 @@ export async function syncTelegramBotCommands(
 
   const baseApi = customApiBase || getTelegramApiBase();
   const commands = [
-    { command: 'start', description: '🚀 启动控制台 & 显示管理员 5 排快捷键盘' },
+    { command: 'start', description: '🚀 启动控制台 & 显示管理员快捷键盘' },
     { command: 'users', description: '👥 查看茶楼全员玩家名册与筹码余额' },
     { command: 'whitelist', description: '📋 查看已授权手机号白名单列表' },
     { command: 'findphone', description: '🔍 输入手机号检索玩家完整档案' },
     { command: 'authphone', description: '📱 添加手机号授权到注册白名单' },
-    { command: 'delphone', description: '🗑️ 移出手机号白名单并清理账号' },
     { command: 'addpoints', description: '➕ 为指定玩家注入充值筹码' },
     { command: 'subpoints', description: '➖ 扣除指定玩家筹码' },
     { command: 'exporttxt', description: '📄 导出全服玩家积分 TXT 榜单' },
-    { command: 'stats', description: '📊 查看茶楼运营数据与战报' },
     { command: 'broadcast', description: '📢 发布全服牌桌通告' },
-    { command: 'rooms', description: '🀄 巡视全服活跃牌桌对局' },
-    { command: 'logs', description: '📜 查看管理员审计日志' },
-    { command: 'help', description: '❓ 查看详细管理员指南' },
   ];
 
   let lastErr = '';

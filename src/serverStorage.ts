@@ -133,14 +133,7 @@ const defaultDatabase: DatabaseSchema = {
       timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
     },
   ],
-  systemAnnouncements: [
-    {
-      id: 'ann-init-1',
-      text: '欢迎诸位茶客牌友！茶楼已接入 Telegram 机器人管理员防作弊与筹码调控中枢。',
-      author: 'Telegram 总管',
-      timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-    },
-  ],
+  systemAnnouncements: [],
 };
 
 let dbCache: DatabaseSchema | null = null;
