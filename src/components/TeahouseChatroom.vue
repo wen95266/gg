@@ -424,7 +424,7 @@
                 class="flex-1 py-1 rounded-lg text-[10px] font-serif font-bold transition-all cursor-pointer text-center"
                 :class="sceneCategoryTab === 'all' ? 'bg-[#5C4533] text-[#FAF4E8] shadow-xs' : 'bg-[#EFE5D3] text-[#6B5744] hover:bg-[#E5D7C2]'"
               >
-                全部({{ ALL_SCENE_DEFINITIONS.length }})
+                在座({{ activeScenesCount }})
               </button>
               <button
                 type="button"
@@ -553,7 +553,7 @@
 
             <!-- Empty filter result -->
             <div v-if="displayedSceneList.length === 0" class="py-8 text-center text-[#8C755E] text-xs font-serif">
-              暂无对应分类场景
+              🍵 暂无玩家在座的游戏场景
             </div>
           </div>
         </div>
@@ -1272,8 +1272,8 @@ const ALL_SCENE_DEFINITIONS: SceneOverviewItem[] = [
 const allSceneListWithStats = computed(() => {
   const onlineList = props.onlinePlayers || [];
   return ALL_SCENE_DEFINITIONS.map((s) => {
-    const count = props.sceneCounts[s.mode] || 0;
     const playersInThisScene = onlineList.filter((p: any) => p.sceneMode === s.mode && p.isOnline !== false);
+    const count = Math.max(props.sceneCounts[s.mode] || 0, playersInThisScene.length);
     
     let statusText = '虚位以待';
     let statusBadgeClass = 'bg-emerald-500/10 text-emerald-800 border-emerald-300';
@@ -1295,11 +1295,22 @@ const allSceneListWithStats = computed(() => {
   });
 });
 
+const activeScenesCount = computed(() => {
+  return allSceneListWithStats.value.filter(
+    (s) => s.count > 0 || s.players.length > 0 || (props.activeSceneMode && s.mode === props.activeSceneMode)
+  ).length;
+});
+
 const displayedSceneList = computed(() => {
-  if (sceneCategoryTab.value === 'all') {
-    return allSceneListWithStats.value;
+  // 聊天室场景实时人数只显示有玩家在的场景（或当前玩家自身所在场景）
+  let list = allSceneListWithStats.value.filter(
+    (s) => s.count > 0 || s.players.length > 0 || (props.activeSceneMode && s.mode === props.activeSceneMode)
+  );
+
+  if (sceneCategoryTab.value !== 'all') {
+    list = list.filter((s) => s.gameType === sceneCategoryTab.value);
   }
-  return allSceneListWithStats.value.filter((s) => s.gameType === sceneCategoryTab.value);
+  return list;
 });
 
 const totalInScenesCount = computed(() => {
