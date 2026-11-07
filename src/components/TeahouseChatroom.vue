@@ -1083,13 +1083,10 @@ const currentRoomId = ref('');
 const currentRoomDeal = ref<any>(null);
 const currentPlayers = ref<ScenePlayer[]>([]);
 
-// Latest server BOT broadcast (persisted independently of local chat message history)
-const latestServerBroadcast = ref('');
+// Chat stream state (empty start, dynamically filled by Telegram BOT broadcasts or chat)
+const chatMessages = ref<ChatMessageItem[]>([]);
 
 const latestBotBroadcastText = computed(() => {
-  if (latestServerBroadcast.value) {
-    return latestServerBroadcast.value;
-  }
   const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
   if (botMsgs.length > 0) {
     return botMsgs[botMsgs.length - 1].text;
@@ -1099,27 +1096,14 @@ const latestBotBroadcastText = computed(() => {
 
 function deleteBroadcastMessage(msgId: string) {
   chatMessages.value = chatMessages.value.filter(m => m.id !== msgId);
-  latestServerBroadcast.value = '';
   if (soundPromptEnabled.value) soundFX.playTap();
-  if (props.ws && props.ws.readyState === WebSocket.OPEN) {
-    try {
-      props.ws.send(JSON.stringify({ type: 'delete_broadcast' }));
-    } catch {}
-  }
 }
 
 function deleteLatestBotBroadcast() {
-  latestServerBroadcast.value = '';
   const botMsgs = chatMessages.value.filter(m => m.type === 'notice' || m.sender.includes('BOT') || m.channel === 'notice');
   if (botMsgs.length > 0) {
     const last = botMsgs[botMsgs.length - 1];
-    chatMessages.value = chatMessages.value.filter(m => m.id !== last.id);
-  }
-  if (soundPromptEnabled.value) soundFX.playTap();
-  if (props.ws && props.ws.readyState === WebSocket.OPEN) {
-    try {
-      props.ws.send(JSON.stringify({ type: 'delete_broadcast' }));
-    } catch {}
+    deleteBroadcastMessage(last.id);
   }
 }
 
@@ -2069,25 +2053,18 @@ function handleWsMessage(event: MessageEvent) {
       }
     } else if (msg.type === 'chat_broadcast') {
       // Administrative announcement / system broadcast
-      const broadcastText = (typeof msg.message?.text === 'string' ? msg.message.text : (typeof msg.message === 'string' ? msg.message : '')) || '';
-      if (broadcastText) {
-        latestServerBroadcast.value = broadcastText;
-      }
-      const ts = msg.message?.timestamp || new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      const ts = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       chatMessages.value.push({
-        id: msg.message?.id || `notice-${Date.now()}`,
-        sender: msg.message?.sender || '🤖 牌楼官播 BOT',
-        avatar: msg.message?.avatar || '🤖',
-        text: broadcastText || '系统通告',
+        id: `notice-${Date.now()}`,
+        sender: msg.message?.sender || '茶楼通告',
+        avatar: msg.message?.avatar || '📢',
+        text: msg.message?.text || msg.message || '系统通告',
         timestamp: ts,
         isSelf: false,
         channel: 'notice',
         type: 'notice',
       });
       scrollToBottom();
-    } else if (msg.type === 'clear_chat_broadcast' || msg.type === 'chat_broadcast_cleared') {
-      latestServerBroadcast.value = '';
-      chatMessages.value = chatMessages.value.filter(m => m.type !== 'notice' && !m.sender.includes('BOT'));
     }
   } catch {}
 }

@@ -288,7 +288,6 @@ export async function syncTelegramBotCommands(
     { command: 'subpoints', description: '➖ 扣除指定玩家筹码' },
     { command: 'exporttxt', description: '📄 导出全服玩家积分 TXT 榜单' },
     { command: 'broadcast', description: '📢 发布全服牌桌通告' },
-    { command: 'delbroadcast', description: '🗑️ 删除并清空全服通告广播' },
   ];
 
   let lastErr = '';

@@ -302,11 +302,11 @@ export function buildTelegramAdminKeyboard() {
     keyboard: [
       [{ text: '🔍 搜手机号查玩家' }, { text: '👥 玩家名册' }, { text: '📄 玩家积分TXT榜单' }],
       [{ text: '➕ 注入筹码' }, { text: '➖ 扣除筹码' }, { text: '📱 授权手机号' }],
-      [{ text: '📋 白名单列表' }, { text: '❌ 删除用户' }, { text: '📢 全服广播' }, { text: '🗑️ 删除广播' }],
+      [{ text: '📋 白名单列表' }, { text: '❌ 删除用户' }, { text: '📢 全服广播' }],
     ],
     resize_keyboard: true,
     is_persistent: true,
-    input_field_placeholder: '👉 输入手机号搜索玩家，发：手机号 筹码，发：/broadcast 广播内容...',
+    input_field_placeholder: '👉 输入手机号搜索玩家或直接发送手机号授权，发：手机号 金额充值...',
   };
 }
 
@@ -894,8 +894,6 @@ export async function executeTelegramUpdate(
   } else if (/^(?:📢\s*)?(?:全服广播|发布广播|全服通告|广播|broadcast)(?:\s+(.+))?$/i.test(trimmed)) {
     const m = trimmed.match(/^(?:📢\s*)?(?:全服广播|发布广播|全服通告|广播|broadcast)(?:\s+(.+))?$/i);
     rawText = m && m[1] ? `/broadcast ${m[1].trim()}` : '/broadcast';
-  } else if (/^(?:🗑️\s*)?(?:删除广播|清空广播|清除广播|撤销广播|一键删除广播|delbroadcast|deletebroadcast)$/i.test(trimmed)) {
-    rawText = '/delbroadcast';
   } else if (/^(?:📄\s*)?(?:玩家积分TXT榜单|玩家积分TXT|玩家积分榜|积分榜单|TXT榜单|导出积分|积分导出|txt|exporttxt)(?:\s+(.+))?$/i.test(trimmed)) {
     rawText = '/exporttxt';
   } else if (trimmed === '👥 玩家名册' || trimmed.includes('玩家名册') || trimmed.includes('查看玩家') || trimmed === '用户列表') {
@@ -942,8 +940,7 @@ export async function executeTelegramUpdate(
         `• \`/deluser <手机号/UID>\` - 注销并删除指定茶客\n` +
         `• \`/addpoints <手机号/UID> <数量>\` - 为玩家注入筹码\n` +
         `• \`/subpoints <手机号/UID> <数量>\` - 扣减玩家筹码\n` +
-        `• \`/broadcast <通告内容>\` - 向全服所有房间发送广播通告\n` +
-        `• \`/delbroadcast\` - 🗑️ 一键删除并清空全服广播通告`;
+        `• \`/broadcast <通告内容>\` - 向全服所有房间发送广播通告`;
       break;
 
     case '/txt':
@@ -1530,41 +1527,21 @@ export async function executeTelegramUpdate(
         success = true;
         break;
       }
-      const annItem = {
-        id: `ann-${Date.now()}`,
-        text: msg,
-        author: operator,
-        timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-      };
-      db.systemAnnouncements = [annItem];
-      saveDatabase(db);
       recordAdminLog('TG_BROADCAST', operator, '全服', msg);
       if (broadcast) {
         broadcast({
           type: 'chat_broadcast',
           roomId: 'ALL',
           message: {
-            id: annItem.id,
-            sender: '🤖 牌楼官播 BOT',
+            id: `tg-${Date.now()}`,
+            sender: '📢 Telegram 管理员广播',
             avatar: '🤖',
             text: msg,
-            timestamp: annItem.timestamp,
+            timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
           },
         });
       }
-      reply = `📢 *全服广播推送成功*！\n已即时推送到全服所有房间与聊天室顶部：\n"${msg}"`;
-      break;
-    }
-
-    case '/delbroadcast':
-    case '/deletebroadcast': {
-      db.systemAnnouncements = [];
-      saveDatabase(db);
-      recordAdminLog('TG_DELBROADCAST', operator, '全服', '删除并清空全服广播通告');
-      if (broadcast) {
-        broadcast({ type: 'clear_chat_broadcast' });
-      }
-      reply = `🗑️ *全服通告已成功删除与清空*！\n已即时同步清除全服所有客户端顶部的全服广播通告。`;
+      reply = `📢 *全服广播推送成功*！\n已即时推送到全服所有对战房间舞台顶部弹幕与茶室聊天：\n"${msg}"`;
       break;
     }
 
